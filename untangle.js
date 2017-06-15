@@ -4,55 +4,11 @@ var untangleGame={
   thinLineThickness : 1,
   boldLineThickness : 5,
   currentLevel : 0,
-  steps : 0
+  steps : 0,
+  progressPercentage : 0
 };
 
-//关卡数据
-untangleGame.levels = [
-  {
-    "level" : 0,
-    "circles" : [{"x":400, "y":156},
-                {"x":381, "y":241},
-                {"x":84, "y":233},
-                {"x":88, "y":73}],
-    "relationship" : {
-      "0" : {"connectedPoints" : [1,2]},
-      "1" : {"connectedPoints" : [0,3]},
-      "2" : {"connectedPoints" : [0,3]},
-      "3" : {"connectedPoints" : [1,2]}
-    }
-  },
-  {
-    "level" : 1,
-    "circles" : [{"x":401, "y":73},
-                {"x":400, "y":240},
-                {"x":88, "y":241},
-                {"x":84, "y":72}],
-    "relationship" : {
-      "0" : {"connectedPoints" : [1,2,3]},
-      "1" : {"connectedPoints" : [0,2,3]},
-      "2" : {"connectedPoints" : [0,1,3]},
-      "3" : {"connectedPoints" : [0,1,2]}
-    }
-  },
-  {
-    "level" : 2,
-    "circles" : [{"x":92, "y":85},
-                {"x":253, "y":13},
-                {"x":393, "y":86},
-                {"x":390, "y":214},
-                {"x":248, "y":275},
-                {"x":95, "y":216}],
-    "relationship" : {
-      "0" : {"connectedPoints" : [2,3,4]},
-      "1" : {"connectedPoints" : [3,5]},
-      "2" : {"connectedPoints" : [0,4,5]},
-      "3" : {"connectedPoints" : [0,1,5]},
-      "4" : {"connectedPoints" : [0,2]},
-      "5" : {"connectedPoints" : [1,2,3]}
-    }
-  }
-];
+untangleGame.levels = leveldata;
 
 //设置初始关卡数据
 function setupCurrentLevel(){
@@ -84,8 +40,8 @@ function updateLevelProgress(){
       progress++;
     }
   }
-  var progressPercentage = Math.floor(progress/untangleGame.lines.length*100);
-  $("#progress").html(progressPercentage);
+  untangleGame.progressPercentage = Math.floor(progress/untangleGame.lines.length*100);
+  $("#progress").html(untangleGame.progressPercentage);
   $("#level").html(untangleGame.currentLevel);
   $("#steps").html(untangleGame.steps);
 }
@@ -98,7 +54,10 @@ function Circle(x,y,radius){
 }
 //点对象--描点方法
 function drawCircle(ctx,x,y,radius){
-  ctx.fillStyle = "rgba(200,200,100,.9)";
+  var circle_gradient = ctx.createRadialGradient(x-3,y-3,1,x,y,radius);
+  circle_gradient.addColorStop(0, "#fff");
+  circle_gradient.addColorStop(1, "#cc0");
+  ctx.fillStyle = circle_gradient;
   ctx.beginPath();
   ctx.arc(x,y,radius,0,Math.PI*2,true);
   ctx.closePath();
@@ -196,6 +155,22 @@ function gameloop() {
   //清空画布
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
+  var bg_gradient = ctx.createLinearGradient(0,0,0,ctx.canvas.height);
+  bg_gradient.addColorStop(0, "#000000");
+  bg_gradient.addColorStop(1, "#555555");
+  ctx.fillStyle = bg_gradient;
+  ctx.fillRect(0,0,ctx.canvas.width,ctx.canvas.height);
+
+  //绘制标题
+  ctx.font = "26px Rock Salt";
+  ctx.textAlign = 'center';
+  ctx.fillStyle = "#fff";
+  ctx.fillText("untangleGame", ctx.canvas.width/2,50);
+  //绘制关卡进度
+  ctx.textAlign = "left";
+  ctx.textBaseline = "bottom";
+  ctx.fillText("Puzzle:"+untangleGame.currentLevel+", Completeness:"+untangleGame.progressPercentage+"%",20,ctx.canvas.height-5);
+
   for (var i = 0; i < untangleGame.lines.length; i++) {
     var line = untangleGame.lines[i];
     var startPoint = line.startPoint;
@@ -207,6 +182,8 @@ function gameloop() {
     var circle = untangleGame.circles[i];
     drawCircle(ctx,circle.x,circle.y,circle.radius);
   }
+
+
 }
 
 $(function(){
